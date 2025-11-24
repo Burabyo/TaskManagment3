@@ -1,5 +1,8 @@
 package tms.model;
 
+/**
+ * Priority enum for task importance.
+ */
 public enum Priority {
     LOW,
     MEDIUM,
@@ -12,6 +15,7 @@ public enum Priority {
             case "LOW": return LOW;
             case "HIGH": return HIGH;
             default: return MEDIUM;
+
 
         }
     }
