@@ -2,65 +2,39 @@ package tms.model;
 
 /**
  * Represents a single task inside a project.
- * Each task has:
- * - a title
- * - a description
- * - a due date (kept as String for now)
- * - a completion flag
  */
 public class Task {
 
-    private String title;
-    private String description;
-    private String dueDate;
-    private boolean completed;
+    private static int counter = 1;   // Auto-generate task IDs
 
-    public Task(String title, String description, String dueDate) {
-        this.title = title;
-        this.description = description;
-        this.dueDate = dueDate;
-        this.completed = false; // default state
+    private String id;
+    private String name;
+    private String status; // "Pending", "In Progress", "Completed"
+
+    public Task(String name, String status) {
+        this.id = generateId();
+        this.name = name;
+        this.status = status;
     }
 
-    // ----- GETTERS -----
-    public String getTitle() {
-        return title;
+    private String generateId() {
+        return String.format("T%03d", counter++);
     }
 
-    public String getDescription() {
-        return description;
+    // Getters & setters
+    public String getId() {
+        return id;
     }
 
-    public String getDueDate() {
-        return dueDate;
+    public String getName() {
+        return name;
     }
 
-    public boolean isCompleted() {
-        return completed;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    // ----- SETTERS -----
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setDueDate(String dueDate) {
-        this.dueDate = dueDate;
-    }
-
-    public void markAsCompleted() {
-        this.completed = true;
-    }
-
-    @Override
-    public String toString() {
-        return "Task: " + title +
-                " | Description: " + description +
-                " | Due: " + dueDate +
-                " | Completed: " + completed;
+    public String getStatus() {
+        return status;
     }
 }

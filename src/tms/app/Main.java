@@ -3,7 +3,7 @@ package tms.app;
 import tms.model.Priority;
 import tms.model.Status;
 import tms.model.Task;
-import tms.service.TaskManager;
+import tms.service.ProjectManager;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -16,7 +16,7 @@ import java.util.Scanner;
 public class Main {
     private static final String STORAGE_FILE = "tasks.data"; // saved to project root
     private static final Scanner scanner = new Scanner(System.in);
-    private static final TaskManager manager = new TaskManager(STORAGE_FILE);
+    private static final ProjectManager manager = new ProjectManager(STORAGE_FILE);
 
     public static void main(String[] args) {
         System.out.println("Welcome to Task Manager");
