@@ -1,161 +1,141 @@
 package tms.app;
 
-import tms.model.Priority;
-import tms.model.Status;
+import tms.model.Project;
 import tms.model.Task;
 import tms.service.ProjectManager;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.List;
 import java.util.Scanner;
 
 /**
- * Simple console UI for the Task Management System.
+ * The interface of my project
  */
 public class Main {
-    private static final String STORAGE_FILE = "tasks.data"; // saved to project root
-    private static final Scanner scanner = new Scanner(System.in);
-    private static final ProjectManager manager = new ProjectManager(STORAGE_FILE);
+
+    private static Scanner scanner = new Scanner(System.in);
+    private static ProjectManager projectManager = new ProjectManager();
 
     public static void main(String[] args) {
-        System.out.println("Welcome to Task Manager");
-        boolean running = true;
-        while (running) {
-            printMenu();
-            String choice = scanner.nextLine().trim();
+
+        int choice;
+
+        do {
+            System.out.println("\n--- PROJECT MANAGEMENT SYSTEM ---");
+            System.out.println("1. Create Project");
+            System.out.println("2. View Projects");
+            System.out.println("3. Add Task to Project");
+            System.out.println("4. Update Task Status");
+            System.out.println("5. Exit");
+            System.out.print("Choose option: ");
+
+            choice = Integer.parseInt(scanner.nextLine());
+
             switch (choice) {
-                case "1": createTask(); break;
-                case "2": listTasks(manager.listAll()); break;
-                case "3": updateTask(); break;
-                case "4": deleteTask(); break;
-                case "5": markDone(); break;
-                case "6": search(); break;
-                case "7": sortMenu(); break;
-                case "0": running = false; break;
-                default: System.out.println("Unknown option");
+
+                case 1:
+                    createProject();
+                    break;
+
+                case 2:
+                    viewProjects();
+                    break;
+
+                case 3:
+                    addTask();
+                    break;
+
+                case 4:
+                    updateTask();
+                    break;
+
+                case 5:
+                    System.out.println("Goodbye!");
+                    break;
+
+                default:
+                    System.out.println("Invalid choice.");
             }
-        }
-        System.out.println("Goodbye!");
+
+        } while (choice != 5);
     }
 
-    private static void printMenu() {
-        System.out.println("\nMenu:");
-        System.out.println("1. Add task");
-        System.out.println("2. List all tasks");
-        System.out.println("3. Update task");
-        System.out.println("4. Delete task");
-        System.out.println("5. Mark task done");
-        System.out.println("6. Search tasks");
-        System.out.println("7. Sort tasks");
-        System.out.println("0. Exit");
-        System.out.print("Choose: ");
-    }
+    // Create project
+    private static void createProject() {
+        System.out.print("Enter project name: ");
+        String name = scanner.nextLine();
 
-    private static void createTask() {
-        System.out.print("Title: ");
-        String title = scanner.nextLine();
-        System.out.print("Description: ");
+        System.out.print("Enter description: ");
         String desc = scanner.nextLine();
-        System.out.print("Due date (YYYY-MM-DD) or leave empty: ");
-        String dd = scanner.nextLine().trim();
-        LocalDate due = null;
-        if (!dd.isEmpty()) {
-            try { due = LocalDate.parse(dd); } catch (DateTimeParseException e) { System.out.println("Invalid date format, skipping due date."); }
+
+        Project p = new Project(name, desc);
+
+        if (projectManager.addProject(p)) {
+            System.out.println("Project created with ID: " + p.getId());
+        } else {
+            System.out.println("Project list full!");
         }
-        System.out.print("Priority (LOW/MEDIUM/HIGH) [MEDIUM]: ");
-        String p = scanner.nextLine().trim();
-        Priority pr = Priority.fromString(p);
-        Task t = manager.addTask(title, desc, due, pr);
-        System.out.println("Created: " + t);
     }
 
-    private static void listTasks(List<Task> tasks) {
-        if (tasks.isEmpty()) {
-            System.out.println("No tasks found.");
+    // List all projects
+    private static void viewProjects() {
+        Project[] list = projectManager.getAllProjects();
+
+        if (list.length == 0) {
+            System.out.println("No projects found.");
             return;
         }
-        tasks.forEach(System.out::println);
+
+        System.out.println("\n--- PROJECTS ---");
+        for (Project p : list) {
+            System.out.println(p.getId() + " | " + p.getName() +
+                    " | Tasks: " + p.getTaskCount() +
+                    " | Completion: " + p.getCompletionRate() + "%");
+        }
     }
 
+    // Add task to project
+    private static void addTask() {
+        System.out.print("Enter project ID: ");
+        String pid = scanner.nextLine();
+
+        System.out.print("Enter task name: ");
+        String name = scanner.nextLine();
+
+        System.out.print("Enter status (Pending/In Progress/Completed): ");
+        String status = scanner.nextLine();
+
+        Task t = new Task(name, status);
+
+        if (projectManager.addTaskToProject(pid, t)) {
+            System.out.println("Task added with ID: " + t.getId());
+        } else {
+            System.out.println("Failed. Invalid project or full task list.");
+        }
+    }
+
+    // Update a task inside a project
     private static void updateTask() {
-        System.out.print("Enter task id to update: ");
-        int id = readInt();
-        Task t = manager.findById(id);
-        if (t == null) { System.out.println("Not found"); return; }
+        System.out.print("Enter project ID: ");
+        String pid = scanner.nextLine();
 
-        System.out.println("Leave empty to keep existing.");
-        System.out.print("New title [" + t.getTitle() + "]: ");
-        String title = scanner.nextLine();
-        if (title.isEmpty()) title = null;
-
-        System.out.print("New description [" + t.getDescription() + "]: ");
-        String desc = scanner.nextLine();
-        if (desc.isEmpty()) desc = null;
-
-        System.out.print("New due date (YYYY-MM-DD) or leave empty [" + (t.getDueDate()==null?"":t.getDueDate()) + "]: ");
-        String dd = scanner.nextLine().trim();
-        LocalDate due = null;
-        if (!dd.isEmpty()) {
-            try { due = LocalDate.parse(dd); } catch (DateTimeParseException e) { System.out.println("Invalid date format, skipping due date change."); }
+        Project p = projectManager.getProjectById(pid);
+        if (p == null) {
+            System.out.println("Project not found.");
+            return;
         }
 
-        System.out.print("Priority (LOW/MEDIUM/HIGH) [" + t.getPriority() + "]: ");
-        String p = scanner.nextLine().trim();
-        Priority pr = p.isEmpty() ? null : Priority.fromString(p);
+        System.out.print("Enter task ID: ");
+        String tid = scanner.nextLine();
 
-        System.out.print("Status (TODO/IN_PROGRESS/DONE) [" + t.getStatus() + "]: ");
-        String s = scanner.nextLine().trim();
-        Status st = s.isEmpty() ? null : Status.fromString(s);
-
-        boolean ok = manager.updateTask(id, title, desc, due, pr, st);
-        System.out.println(ok ? "Updated" : "Update failed");
-    }
-
-    private static void deleteTask() {
-        System.out.print("Enter task id to delete: ");
-        int id = readInt();
-        boolean ok = manager.deleteTask(id);
-        System.out.println(ok ? "Deleted" : "Not found");
-    }
-
-    private static void markDone() {
-        System.out.print("Enter task id to mark done: ");
-        int id = readInt();
-        boolean ok = manager.markDone(id);
-        System.out.println(ok ? "Marked done" : "Not found");
-    }
-
-    private static void search() {
-        System.out.print("Enter search keyword: ");
-        String q = scanner.nextLine();
-        List<Task> found = manager.search(q);
-        listTasks(found);
-    }
-
-    private static void sortMenu() {
-        System.out.println("Sort by:");
-        System.out.println("1. Due date ascending");
-        System.out.println("2. Due date descending");
-        System.out.println("3. Priority ascending");
-        System.out.println("4. Priority descending");
-        System.out.print("Choice: ");
-        String c = scanner.nextLine();
-        switch (c) {
-            case "1": listTasks(manager.sortByDueDate(true)); break;
-            case "2": listTasks(manager.sortByDueDate(false)); break;
-            case "3": listTasks(manager.sortByPriority(true)); break;
-            case "4": listTasks(manager.sortByPriority(false)); break;
-            default: System.out.println("Unknown");
+        Task task = p.getTaskById(tid);
+        if (task == null) {
+            System.out.println("Task not found.");
+            return;
         }
-    }
 
-    private static int readInt() {
-        try {
-            String s = scanner.nextLine().trim();
-            return Integer.parseInt(s);
-        } catch (Exception e) {
-            return -1;
-        }
+        System.out.print("Enter new status: ");
+        String newStatus = scanner.nextLine();
+
+        task.setStatus(newStatus);
+        System.out.println("Task updated!");
     }
 }
