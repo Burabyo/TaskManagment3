@@ -2,7 +2,6 @@ package tms.app;
 
 import tms.models.Project;
 import tms.models.Task;
-import tms.service.ProjectManager;
 
 import java.util.Scanner;
 
