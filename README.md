@@ -1,51 +1,21 @@
+# Project/Task Management System (Java)
 
-# **README**
+## Summary
+Console-based Project/Task Management System implemented in Java 21.  
+Stores data in memory using arrays. Implements project types, tasks, user roles, and status reporting.
 
-## **Project Management System (TMS)**
+## Implemented
+- Abstract `Project` with `SoftwareProject` and `HardwareProject`.
+- `Task` with auto-generated IDs and `Status` enum.
+- `User` with `AdminUser` and `RegularUser`.
+- `ProjectService`, `TaskService`, `ReportService` (arrays only).
+- Menu-driven console UI (`ConsoleMenu`) with input validation.
+- Budget and team size included for each project.
+- Completion percentage shown with two decimals.
 
-This project is a simple **Task Management System** built in Java.
-It allows the user to create projects, add tasks to a project, and view all tasks.
-The goal of the assignment was to practice object-oriented programming (OOP), file structuring, and basic console interaction.
-
-### **What I implemented**
-
-* A `Task` class that stores task details such as title, description, due date, and status.
-* A `Project` class that holds multiple tasks using an ArrayList.
-* A `ProjectManager` service class that manages a list of projects and basic operations.
-* A `Main` class with a simple text-based menu that lets a user:
-
-    * create a project,
-    * add a task to a project,
-    * list projects and tasks.
-
-### **Folder Structure**
-
-```
-src/
- └── tms/
-      ├── model/
-      │     ├── Task.java
-      │     └── Project.java
-      ├── service/
-      │     └── ProjectManager.java
-      └── app/
-            └── Main.java
-```
-
-### **How to Run**
-
-Compile inside the `src` directory:
-
-```
-javac tms/**/*.java
-```
-
-Run:
-
-```
-java tms.app.Main
-```
-
----
-
-If you want, I can also generate a **short report**, **uml diagram (text)**, or **interview preparation notes** for this project.
+## How to run
+1. Compile all `.java` files under `src`.
+2. From project root:
+   ```bash
+   javac -d out src/tms/**/*.java
+   java -cp out tms.app.Main
