@@ -1,140 +1,37 @@
 package tms.app;
 
-import tms.models.Project;
-import tms.models.Task;
+import tms.models.*;
+import tms.service.*;
+import tms.utils.ConsoleMenu;
 
 import java.util.Scanner;
 
 /**
- * The interface of my project
+ * Application entry point.
+ * Wire services and start ConsoleMenu.
  */
 public class Main {
-
-    private static Scanner scanner = new Scanner(System.in);
-    private static ProjectManager projectManager = new ProjectManager();
-
     public static void main(String[] args) {
+        // Scanner shared across the app
+        Scanner scanner = new Scanner(System.in);
 
-        int choice;
+        // Services (arrays sizes chosen to satisfy assignment minimums and some room)
+        ProjectService projectService = new ProjectService(100); // up to 100 projects
+        TaskService taskService = new TaskService(projectService);
+        ReportService reportService = new ReportService(projectService);
 
-        do {
-            System.out.println("\n--- PROJECT MANAGEMENT SYSTEM ---");
-            System.out.println("1. Create Project");
-            System.out.println("2. View Projects");
-            System.out.println("3. Add Task to Project");
-            System.out.println("4. Update Task Status");
-            System.out.println("5. Exit");
-            System.out.print("Choose option: ");
+        // Seed sample projects and tasks
+        projectService.seedSampleData();
 
-            choice = Integer.parseInt(scanner.nextLine());
+        // Default starting user (Admin) to allow full interactions
+        User defaultUser = new AdminUser("Alice Johnson", "alice@example.com");
 
-            switch (choice) {
+        // Start console menu
+        ConsoleMenu menu = new ConsoleMenu(scanner, projectService, taskService, reportService, defaultUser);
+        menu.run();
 
-                case 1:
-                    createProject();
-                    break;
-
-                case 2:
-                    viewProjects();
-                    break;
-
-                case 3:
-                    addTask();
-                    break;
-
-                case 4:
-                    updateTask();
-                    break;
-
-                case 5:
-                    System.out.println("Goodbye!");
-                    break;
-
-                default:
-                    System.out.println("Invalid choice.");
-            }
-
-        } while (choice != 5);
-    }
-
-    // Create project
-    private static void createProject() {
-        System.out.print("Enter project name: ");
-        String name = scanner.nextLine();
-
-        System.out.print("Enter description: ");
-        String desc = scanner.nextLine();
-
-        Project p = new Project(name, desc);
-
-        if (projectManager.addProject(p)) {
-            System.out.println("Project created with ID: " + p.getId());
-        } else {
-            System.out.println("Project list full!");
-        }
-    }
-
-    // List all projects
-    private static void viewProjects() {
-        Project[] list = projectManager.getAllProjects();
-
-        if (list.length == 0) {
-            System.out.println("No projects found.");
-            return;
-        }
-
-        System.out.println("\n--- PROJECTS ---");
-        for (Project p : list) {
-            System.out.println(p.getId() + " | " + p.getName() +
-                    " | Tasks: " + p.getTaskCount() +
-                    " | Completion: " + p.getCompletionRate() + "%");
-        }
-    }
-
-    // Add task to project
-    private static void addTask() {
-        System.out.print("Enter project ID: ");
-        String pid = scanner.nextLine();
-
-        System.out.print("Enter task name: ");
-        String name = scanner.nextLine();
-
-        System.out.print("Enter status (Pending/In Progress/Completed): ");
-        String status = scanner.nextLine();
-
-        Task t = new Task(name, status);
-
-        if (projectManager.addTaskToProject(pid, t)) {
-            System.out.println("Task added with ID: " + t.getId());
-        } else {
-            System.out.println("Failed. Invalid project or full task list.");
-        }
-    }
-
-    // Update a task inside a project
-    private static void updateTask() {
-        System.out.print("Enter project ID: ");
-        String pid = scanner.nextLine();
-
-        Project p = projectManager.getProjectById(pid);
-        if (p == null) {
-            System.out.println("Project not found.");
-            return;
-        }
-
-        System.out.print("Enter task ID: ");
-        String tid = scanner.nextLine();
-
-        Task task = p.getTaskById(tid);
-        if (task == null) {
-            System.out.println("Task not found.");
-            return;
-        }
-
-        System.out.print("Enter new status: ");
-        String newStatus = scanner.nextLine();
-
-        task.setStatus(newStatus);
-        System.out.println("Task updated!");
+        // Clean up
+        scanner.close();
+        System.out.println("Application exited.");
     }
 }
