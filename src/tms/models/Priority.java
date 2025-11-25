@@ -1,4 +1,4 @@
-package tms.model;
+package tms.models;
 
 /**
  * Priority enum for task importance.

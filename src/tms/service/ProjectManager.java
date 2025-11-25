@@ -1,7 +1,7 @@
 package tms.service;
 
-import tms.model.Project;
-import tms.model.Task;
+import tms.models.Project;
+import tms.models.Task;
 
 /**
  * This class manages all projects.

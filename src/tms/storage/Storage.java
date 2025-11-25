@@ -1,6 +1,6 @@
 package tms.storage;
 
-import tms.model.Task;
+import tms.models.Task;
 
 import java.io.*;
 import java.nio.file.Files;
