@@ -63,13 +63,48 @@ public class ProjectService {
         return out;
     }
 
-    // Seed sample data (minimum 5 projects as required)
+    // Seed sample data
     public void seedSampleData() {
         // use maxTasks per project = 50 (example)
-        addProject(new SoftwareProject("Alpha Tracker", "Task tracking app for startups", 5, 15000, 50));
-        addProject(new HardwareProject("IoT Sensor Kit", "Sensor prototype for smart devices", 3, 10000, 50));
-        addProject(new SoftwareProject("Billing Service", "Invoice microservice", 4, 20000, 50));
-        addProject(new HardwareProject("Drone Platform", "Prototype drone chassis", 6, 45000, 50));
-        addProject(new SoftwareProject("Mobile Wallet", "Payment app MVP", 7, 30000, 50));
+        addProject(new SoftwareProject(
+                "Smart Garden Monitor",
+                "Mobile app and sensor system for monitoring soil and sunlight",
+                4,         // team size
+                8500,      // budget
+                50         // max tasks
+        ));
+
+        addProject(new HardwareProject(
+                "Drone Delivery Chassis",
+                "Lightweight drone body for parcel delivery",
+                3,
+                12000,
+                50
+        ));
+
+        addProject(new SoftwareProject(
+                "Student Attendance Tracker",
+                "Web platform for QR-based attendance management",
+                5,
+                6000,
+                50
+        ));
+
+        addProject(new HardwareProject(
+                "Solar Street Light Controller",
+                "Electronic module for managing solar lamp brightness and battery usage",
+                4,
+                9000,
+                50
+        ));
+
+        addProject(new SoftwareProject(
+                "Fitness Meal Planner",
+                "Nutrition app that generates weekly meal plans",
+                3,
+                4500,
+                50
+        ));
+
     }
 }

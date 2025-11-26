@@ -4,10 +4,10 @@ import java.util.Arrays;
 
 /**
  * Abstract Project class required by assignment.
- *
+
  * Fields required: id, name, description, budget, teamSize.
  * Stores tasks in an array (no collections) as the lab requires.
- *
+
  * Subclasses must implement getProjectDetails() to include type-specific info.
  */
 public abstract class Project {
