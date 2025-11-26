@@ -24,7 +24,7 @@ public class Main {
         projectService.seedSampleData();
 
         // Default starting user (Admin) to allow full interactions
-        User defaultUser = new AdminUser("Alice Johnson", "alice@example.com");
+        User defaultUser = new AdminUser("Jolly Gift", "burabyogift1@gmail.com");
 
         // Start console menu
         ConsoleMenu menu = new ConsoleMenu(scanner, projectService, taskService, reportService, defaultUser);
