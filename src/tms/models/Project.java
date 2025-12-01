@@ -3,7 +3,7 @@ package tms.models;
 import java.util.Arrays;
 
 /**
- * Abstract Project class required by assignment.
+ * Abstract Project class
 
  * Fields required: id, name, description, budget, teamSize.
  * Stores tasks in an array (no collections) as the lab requires.
