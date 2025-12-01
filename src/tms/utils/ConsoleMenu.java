@@ -2,15 +2,13 @@ package tms.utils;
 
 import tms.models.*;
 import tms.service.*;
+import tms.utils.exceptions.*;
 
 import java.util.Scanner;
 
 /**
- * ConsoleMenu: menu-driven UI that coordinates services and models.
- * - Handles role-based access (Admin/Regular) for delete/update.
- * - Provides project management, task management, reports, user switching.
- *
- * Medium complexity: clear but not over-engineered.
+ * ConsoleMenu with try-catch blocks to handle custom exceptions (Lab 2).
+ * This version is cleaned up to ensure all menu methods exist and compile.
  */
 public class ConsoleMenu {
 
@@ -40,23 +38,31 @@ public class ConsoleMenu {
             System.out.println("4. Switch User");
             System.out.println("5. Exit");
             int choice = ValidationUtils.readInt(scanner, "Enter your choice: ", 1, 5);
-            switch (choice) {
-                case 1 -> manageProjectsMenu();
-                case 2 -> manageTasksMenu();
-                case 3 -> reportService.printProjectStatusReport();
-                case 4 -> switchUser();
-                case 5 -> running = false;
+            try {
+                switch (choice) {
+                    case 1 -> manageProjectsMenu();
+                    case 2 -> manageTasksMenu();
+                    case 3 -> reportService.printProjectStatusReport();
+                    case 4 -> switchUser();
+                    case 5 -> running = false;
+                }
+            } catch (InvalidInputException | InvalidProjectDataException |
+                     ProjectNotFoundException | TaskNotFoundException |
+                     EmptyProjectException ex) {
+                System.out.println("Error: " + ex.getMessage());
+            } catch (Exception ex) {
+                System.out.println("An unexpected error occurred: " + ex.getMessage());
             }
         }
     }
 
     private void printHeader() {
         System.out.println("\n============================");
-        System.out.println("  JAVA PROJECT MANAGEMENT SYSTEM");
+        System.out.println("  JAVA PROJECT MANAGEMENT SYSTEM (Lab 2)");
         System.out.println("============================\n");
     }
 
-    // ----------------- Project Menu -----------------
+    // ---------- Projects menu ----------
     private void manageProjectsMenu() {
         boolean back = false;
         while (!back) {
@@ -66,11 +72,15 @@ public class ConsoleMenu {
             System.out.println("3. View Project Details");
             System.out.println("4. Back to Main Menu");
             int ch = ValidationUtils.readInt(scanner, "Enter choice: ", 1, 4);
-            switch (ch) {
-                case 1 -> createProjectFlow();
-                case 2 -> filterProjectsFlow();
-                case 3 -> viewProjectDetailsFlow();
-                case 4 -> back = true;
+            try {
+                switch (ch) {
+                    case 1 -> createProjectFlow();
+                    case 2 -> filterProjectsFlow();
+                    case 3 -> viewProjectDetailsFlow();
+                    case 4 -> back = true;
+                }
+            } catch (InvalidProjectDataException | ProjectNotFoundException ex) {
+                System.out.println("Error: " + ex.getMessage());
             }
         }
     }
@@ -108,8 +118,11 @@ public class ConsoleMenu {
             case 4 -> {
                 double min = ValidationUtils.readDouble(scanner, "Enter min budget: ", 0, Double.MAX_VALUE);
                 double max = ValidationUtils.readDouble(scanner, "Enter max budget: ", 0, Double.MAX_VALUE);
-                if (max < min) System.out.println("Invalid range: max < min.");
-                else displayProjects(projectService.searchByBudgetRange(min, max));
+                if (max < min) {
+                    System.out.println("Invalid range: max < min.");
+                } else {
+                    displayProjects(projectService.searchByBudgetRange(min, max));
+                }
             }
         }
     }
@@ -125,8 +138,7 @@ public class ConsoleMenu {
     private void viewProjectDetailsFlow() {
         String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID (or 0 to return): ");
         if ("0".equals(pid)) return;
-        Project p = projectService.findById(pid);
-        if (p == null) { System.out.println("Project not found."); return; }
+        Project p = projectService.findById(pid); // may throw ProjectNotFoundException
         System.out.println();
         p.displayProject();
         System.out.println("\nAssociated Tasks:");
@@ -136,11 +148,11 @@ public class ConsoleMenu {
             System.out.printf("%-8s %-25s %-12s %-10s %-6s%n", "TASKID", "NAME", "STATUS", "ASSIGNED", "HOURS");
             for (Task t : tasks) {
                 System.out.printf("%-8s %-25s %-12s %-10s %-6.1f%n",
-                        t.getId(), t.getName(), t.getStatus().label(), t.getAssignedUserId()==null?"-":t.getAssignedUserId(), t.getHoursEstimate());
+                        t.getId(), t.getName(), t.getStatus().label(), t.getAssignedUserId() == null ? "-" : t.getAssignedUserId(), t.getHoursEstimate());
             }
         }
         System.out.printf("Completion Rate: %.2f%%%n", p.completionPercentage());
-        // Options
+        // Options for project details
         System.out.println("\nOptions:");
         System.out.println("1. Add New Task");
         System.out.println("2. Update Task Status");
@@ -155,7 +167,7 @@ public class ConsoleMenu {
         }
     }
 
-    // ----------------- Task Menu -----------------
+    // ---------- Tasks menu ----------
     private void manageTasksMenu() {
         boolean back = false;
         while (!back) {
@@ -166,55 +178,54 @@ public class ConsoleMenu {
             System.out.println("4. Delete Task");
             System.out.println("5. Back to Main Menu");
             int c = ValidationUtils.readInt(scanner, "Enter choice: ", 1, 5);
-            switch (c) {
-                case 1 -> {
-                    String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID to add task: ");
-                    Project p = projectService.findById(pid);
-                    if (p == null) System.out.println("Project not found.");
-                    else addTaskToProjectFlow(p);
-                }
-                case 2 -> {
-                    String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID to view tasks: ");
-                    Project p = projectService.findById(pid);
-                    if (p == null) System.out.println("Project not found.");
-                    else {
+            try {
+                switch (c) {
+                    case 1 -> {
+                        String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID to add task: ");
+                        Project p = projectService.findById(pid);
+                        addTaskToProjectFlow(p);
+                    }
+                    case 2 -> {
+                        String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID to view tasks: ");
+                        Project p = projectService.findById(pid);
                         Task[] tasks = p.getTasks();
                         if (tasks.length == 0) System.out.println("No tasks.");
                         else {
                             System.out.printf("%-8s %-25s %-12s %-10s %-6s%n", "TASKID", "NAME", "STATUS", "ASSIGNED", "HOURS");
                             for (Task t : tasks) {
                                 System.out.printf("%-8s %-25s %-12s %-10s %-6.1f%n",
-                                        t.getId(), t.getName(), t.getStatus().label(), t.getAssignedUserId()==null?"-":t.getAssignedUserId(), t.getHoursEstimate());
+                                        t.getId(), t.getName(), t.getStatus().label(), t.getAssignedUserId() == null ? "-" : t.getAssignedUserId(), t.getHoursEstimate());
                             }
                         }
                     }
+                    case 3 -> {
+                        String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID that contains the task: ");
+                        Project p = projectService.findById(pid);
+                        updateTaskStatusFlow(p);
+                    }
+                    case 4 -> {
+                        String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID that contains the task: ");
+                        Project p = projectService.findById(pid);
+                        removeTaskFlow(p);
+                    }
+                    case 5 -> back = true;
                 }
-                case 3 -> {
-                    String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID that contains the task: ");
-                    Project p = projectService.findById(pid);
-                    if (p == null) System.out.println("Project not found.");
-                    else updateTaskStatusFlow(p);
-                }
-                case 4 -> {
-                    String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID that contains the task: ");
-                    Project p = projectService.findById(pid);
-                    if (p == null) System.out.println("Project not found.");
-                    else removeTaskFlow(p);
-                }
-                case 5 -> back = true;
+            } catch (ProjectNotFoundException | TaskNotFoundException | EmptyProjectException ex) {
+                System.out.println("Error: " + ex.getMessage());
             }
         }
     }
 
     private void addTaskToProjectFlow(Project p) {
+        if (p == null) {
+            System.out.println("Project is null. Aborting.");
+            return;
+        }
         String name = ValidationUtils.readNonEmpty(scanner, "Enter task name: ");
-        if (p.getTasks() != null) {
-            // Project.addTask prevents duplicate names; we can still check
-            for (Task existing : p.getTasks()) {
-                if (existing.getName().equalsIgnoreCase(name)) {
-                    System.out.println("Duplicate task name. Aborting.");
-                    return;
-                }
+        for (Task existing : p.getTasks()) {
+            if (existing.getName().equalsIgnoreCase(name)) {
+                System.out.println("Duplicate task name. Aborting.");
+                return;
             }
         }
         String statusStr = ValidationUtils.readStatusString(scanner, "Enter initial status (Pending/In Progress/Completed): ");
@@ -230,12 +241,16 @@ public class ConsoleMenu {
     }
 
     private void updateTaskStatusFlow(Project p) {
+        if (p == null) {
+            System.out.println("Project is null. Aborting.");
+            return;
+        }
         Task[] tasks = p.getTasks();
-        if (tasks.length == 0) { System.out.println("No tasks to update."); return; }
+        if (tasks.length == 0) throw new EmptyProjectException("Project has no tasks to update.");
         System.out.print("Enter task ID: ");
         String tid = scanner.nextLine().trim();
         Task t = p.findTaskById(tid);
-        if (t == null) { System.out.println("Task not found."); return; }
+        if (t == null) throw new TaskNotFoundException("Task not found: " + tid);
         String statusStr = ValidationUtils.readStatusString(scanner, "Enter new status: ");
         Status ns = Status.fromString(statusStr);
         t.setStatus(ns);
@@ -243,6 +258,10 @@ public class ConsoleMenu {
     }
 
     private void removeTaskFlow(Project p) {
+        if (p == null) {
+            System.out.println("Project is null. Aborting.");
+            return;
+        }
         if (!(currentUser instanceof AdminUser)) {
             System.out.println("Only Admin can delete tasks.");
             return;
@@ -251,11 +270,14 @@ public class ConsoleMenu {
         if (tasks.length == 0) { System.out.println("No tasks to remove."); return; }
         System.out.print("Enter task ID to remove: ");
         String tid = scanner.nextLine().trim();
-        boolean ok = taskService.removeTask(p.getId(), tid);
-        System.out.println(ok ? "Task removed." : "Task not found.");
+        try {
+            taskService.removeTask(p.getId(), tid);
+            System.out.println("Task removed.");
+        } catch (TaskNotFoundException ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
     }
 
-    // -------------- Other helpers ---------------
     private void switchUser() {
         System.out.println("\nSwitch User:");
         System.out.println("1. Admin User");
@@ -268,7 +290,7 @@ public class ConsoleMenu {
         System.out.printf("Switched to %s (%s).%n", currentUser.getName(), currentUser.getRole());
     }
 
-    // Entry method to expose Task menu from main
+    // Entry method to expose Task menu from main (optional)
     public void openTaskManagement() {
         manageTasksMenu();
     }

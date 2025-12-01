@@ -3,10 +3,12 @@ package tms.service;
 import tms.models.Project;
 import tms.models.SoftwareProject;
 import tms.models.HardwareProject;
+import tms.utils.exceptions.InvalidProjectDataException;
+import tms.utils.exceptions.ProjectNotFoundException;
 
 /**
  * ProjectService stores projects in an array (no collections).
- * Provides create, list, search (by id/type/budget range) operations.
+ * Now validates project data and throws exceptions on invalid input.
  */
 public class ProjectService {
     private final Project[] projects;
@@ -19,7 +21,16 @@ public class ProjectService {
         this.projectCount = 0;
     }
 
+    /**
+     * Add a project with basic validation.
+     */
     public boolean addProject(Project p) {
+        if (p.getBudget() < 0) {
+            throw new InvalidProjectDataException("Budget cannot be negative.");
+        }
+        if (p.getTeamSize() <= 0) {
+            throw new InvalidProjectDataException("Team size must be greater than 0.");
+        }
         if (projectCount >= maxProjects) return false;
         projects[projectCount++] = p;
         return true;
@@ -29,7 +40,7 @@ public class ProjectService {
         for (int i = 0; i < projectCount; i++) {
             if (projects[i].getId().equalsIgnoreCase(id)) return projects[i];
         }
-        return null;
+        throw new ProjectNotFoundException("Project with ID " + id + " not found.");
     }
 
     public Project[] getAllProjects() {
@@ -38,7 +49,6 @@ public class ProjectService {
         return out;
     }
 
-    // Filter by type: "Software" or "Hardware"
     public Project[] filterByType(String type) {
         Project[] tmp = new Project[projectCount];
         int c = 0;
@@ -50,8 +60,8 @@ public class ProjectService {
         return out;
     }
 
-    // Budget range search
     public Project[] searchByBudgetRange(double min, double max) {
+        if (max < min) throw new InvalidProjectDataException("Max budget must be >= min budget.");
         Project[] tmp = new Project[projectCount];
         int c = 0;
         for (int i = 0; i < projectCount; i++) {
@@ -63,48 +73,12 @@ public class ProjectService {
         return out;
     }
 
-    // Seed sample data
     public void seedSampleData() {
-        // use maxTasks per project = 50 (example)
-        addProject(new SoftwareProject(
-                "Smart Garden Monitor",
-                "Mobile app and sensor system for monitoring soil and sunlight",
-                4,         // team size
-                8500,      // budget
-                50         // max tasks
-        ));
 
-        addProject(new HardwareProject(
-                "Drone Delivery Chassis",
-                "Lightweight drone body for parcel delivery",
-                3,
-                12000,
-                50
-        ));
-
-        addProject(new SoftwareProject(
-                "Student Attendance Tracker",
-                "Web platform for QR-based attendance management",
-                5,
-                6000,
-                50
-        ));
-
-        addProject(new HardwareProject(
-                "Solar Street Light Controller",
-                "Electronic module for managing solar lamp brightness and battery usage",
-                4,
-                9000,
-                50
-        ));
-
-        addProject(new SoftwareProject(
-                "Fitness Meal Planner",
-                "Nutrition app that generates weekly meal plans",
-                3,
-                4500,
-                50
-        ));
-
+        addProject(new SoftwareProject("Smart Garden Monitor", "Mobile app and sensor system", 4, 8500, 50));
+        addProject(new HardwareProject("Drone Delivery Chassis", "Lightweight drone body", 3, 12000, 50));
+        addProject(new SoftwareProject("Student Attendance Tracker", "QR-based attendance", 5, 6000, 50));
+        addProject(new HardwareProject("Solar Street Light Controller", "Battery and brightness control", 4, 9000, 50));
+        addProject(new SoftwareProject("Fitness Meal Planner", "Weekly meal plans", 3, 4500, 50));
     }
 }
