@@ -21,5 +21,5 @@ Stores data in memory using arrays. Implements project types, tasks, user roles,
    java -cp out tms.app.Main
    
  ## Below is class diagram of TaskManagement
-    [View Class Diagram](docs/ClassDiaram.pdf)
+   **[View Class Diagram](docs/ClassDiaram.pdf)**
 
