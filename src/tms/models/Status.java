@@ -1,8 +1,7 @@
 package tms.models;
 
 /**
- * Enum representing allowed task statuses.
- * Using an enum avoids invalid status strings in many places.
+ * Task Status enumeration with helper methods.
  */
 public enum Status {
     PENDING("Pending"),
@@ -11,22 +10,17 @@ public enum Status {
 
     private final String label;
 
-    Status(String label) {
-        this.label = label;
-    }
+    Status(String label) { this.label = label; }
 
-    public String label() {
-        return label;
-    }
+    public String label() { return label; }
 
     public static Status fromString(String s) {
-        if (s == null) return null;
-        String v = s.trim().toLowerCase();
-        return switch (v) {
-            case "pending" -> PENDING;
+        if (s == null) return PENDING;
+        String n = s.trim().toLowerCase();
+        return switch (n) {
+            case "completed", "complete" -> COMPLETED;
             case "in progress", "in_progress", "inprogress" -> IN_PROGRESS;
-            case "completed" -> COMPLETED;
-            default -> null;
+            default -> PENDING;
         };
     }
 }
