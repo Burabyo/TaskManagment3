@@ -1,11 +1,13 @@
 package tms.models;
 
 /**
- * HardwareProject concrete.
+ * HardwareProject subclass (concrete).
+ * Could hold hardware-specific fields later.
  */
 public class HardwareProject extends Project {
-    public HardwareProject(String name, String description, int teamSize, double budget) {
-        super(name, description, teamSize, budget);
+
+    public HardwareProject(String name, String description, int teamSize, double budget, int maxTasks) {
+        super(name, description, teamSize, budget, maxTasks);
     }
 
     @Override
