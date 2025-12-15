@@ -1,84 +1,56 @@
 package tms.service;
 
 import tms.models.Project;
-import tms.models.SoftwareProject;
-import tms.models.HardwareProject;
 import tms.utils.exceptions.InvalidProjectDataException;
 import tms.utils.exceptions.ProjectNotFoundException;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
- * ProjectService stores projects in an array (no collections).
- * Now validates project data and throws exceptions on invalid input.
+ * Project service backed by HashMap for quick lookup.
  */
 public class ProjectService {
-    private final Project[] projects;
-    private int projectCount;
-    private final int maxProjects;
+    private final Map<String, Project> projects = new LinkedHashMap<>();
 
-    public ProjectService(int maxProjects) {
-        this.maxProjects = maxProjects;
-        this.projects = new Project[maxProjects];
-        this.projectCount = 0;
-    }
+    public ProjectService() { }
 
-    /**
-     * Add a project with basic validation.
-     */
     public boolean addProject(Project p) {
-        if (p.getBudget() < 0) {
-            throw new InvalidProjectDataException("Budget cannot be negative.");
-        }
-        if (p.getTeamSize() <= 0) {
-            throw new InvalidProjectDataException("Team size must be greater than 0.");
-        }
-        if (projectCount >= maxProjects) return false;
-        projects[projectCount++] = p;
+        if (p.getBudget() < 0) throw new InvalidProjectDataException("Budget cannot be negative.");
+        if (p.getTeamSize() <= 0) throw new InvalidProjectDataException("Team size must be > 0.");
+        projects.put(p.getId(), p);
         return true;
     }
 
     public Project findById(String id) {
-        for (int i = 0; i < projectCount; i++) {
-            if (projects[i].getId().equalsIgnoreCase(id)) return projects[i];
-        }
-        throw new ProjectNotFoundException("Project with ID " + id + " not found.");
+        Project p = projects.get(id);
+        if (p == null) throw new ProjectNotFoundException("Project " + id + " not found.");
+        return p;
     }
 
-    public Project[] getAllProjects() {
-        Project[] out = new Project[projectCount];
-        for (int i = 0; i < projectCount; i++) out[i] = projects[i];
-        return out;
+    public Collection<Project> getAllProjects() { return projects.values(); }
+
+    public List<Project> filterByType(String type) {
+        return projects.values().stream()
+                .filter(p -> p.getProjectDetails().equalsIgnoreCase(type))
+                .collect(Collectors.toList());
     }
 
-    public Project[] filterByType(String type) {
-        Project[] tmp = new Project[projectCount];
-        int c = 0;
-        for (int i = 0; i < projectCount; i++) {
-            if (projects[i].getProjectDetails().equalsIgnoreCase(type)) tmp[c++] = projects[i];
-        }
-        Project[] out = new Project[c];
-        System.arraycopy(tmp, 0, out, 0, c);
-        return out;
+    public List<Project> searchByBudgetRange(double min, double max) {
+        if (max < min) throw new InvalidProjectDataException("Max must be >= min.");
+        return projects.values().stream()
+                .filter(p -> p.getBudget() >= min && p.getBudget() <= max)
+                .collect(Collectors.toList());
     }
 
-    public Project[] searchByBudgetRange(double min, double max) {
-        if (max < min) throw new InvalidProjectDataException("Max budget must be >= min budget.");
-        Project[] tmp = new Project[projectCount];
-        int c = 0;
-        for (int i = 0; i < projectCount; i++) {
-            double b = projects[i].getBudget();
-            if (b >= min && b <= max) tmp[c++] = projects[i];
-        }
-        Project[] out = new Project[c];
-        System.arraycopy(tmp, 0, out, 0, c);
-        return out;
+    public List<Project> completedAbove(double percent) {
+        return projects.values().stream()
+                .filter(p -> p.completionPercentage() > percent)
+                .collect(Collectors.toList());
     }
 
-    public void seedSampleData() {
-
-        addProject(new SoftwareProject("Smart Garden Monitor", "Mobile app and sensor system", 4, 8500, 50));
-        addProject(new HardwareProject("Drone Delivery Chassis", "Lightweight drone body", 3, 12000, 50));
-        addProject(new SoftwareProject("Student Attendance Tracker", "QR-based attendance", 5, 6000, 50));
-        addProject(new HardwareProject("Solar Street Light Controller", "Battery and brightness control", 4, 9000, 50));
-        addProject(new SoftwareProject("Fitness Meal Planner", "Weekly meal plans", 3, 4500, 50));
+    public void replaceAll(Collection<Project> list) {
+        projects.clear();
+        for (Project p : list) projects.put(p.getId(), p);
     }
 }

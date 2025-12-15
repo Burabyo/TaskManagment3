@@ -3,15 +3,14 @@ package tms.service;
 import tms.models.Project;
 import tms.models.Task;
 import tms.models.Status;
-import tms.utils.exceptions.ProjectNotFoundException;
 import tms.utils.exceptions.TaskNotFoundException;
 
+import java.util.Optional;
+
 /**
- * TaskService delegates task operations to the Project objects.
- * Now throws TaskNotFoundException when a task is missing.
+ * TaskService operates through ProjectService; uses project's task list.
  */
 public class TaskService {
-
     private final ProjectService projectService;
 
     public TaskService(ProjectService projectService) {
@@ -19,26 +18,22 @@ public class TaskService {
     }
 
     public boolean addTaskToProject(String projectId, Task t) {
-        Project p = projectService.findById(projectId); // will throw ProjectNotFoundException if missing
-        return p.addTask(t); // Project handles duplicates/capacity and returns boolean
+        Project p = projectService.findById(projectId);
+        return p.addTask(t);
     }
 
     public boolean updateTaskStatus(String projectId, String taskId, Status newStatus) {
         Project p = projectService.findById(projectId);
-        Task t = p.findTaskById(taskId);
-        if (t == null) {
-            throw new TaskNotFoundException("Task with ID " + taskId + " not found in project " + projectId + ".");
-        }
-        t.setStatus(newStatus);
+        Optional<Task> op = p.findTaskById(taskId);
+        if (op.isEmpty()) throw new TaskNotFoundException("Task " + taskId + " not found in " + projectId);
+        op.get().setStatus(newStatus);
         return true;
     }
 
     public boolean removeTask(String projectId, String taskId) {
         Project p = projectService.findById(projectId);
         boolean removed = p.removeTaskById(taskId);
-        if (!removed) {
-            throw new TaskNotFoundException("Task with ID " + taskId + " not found in project " + projectId + ".");
-        }
+        if (!removed) throw new TaskNotFoundException("Task " + taskId + " not found in " + projectId);
         return true;
     }
 }
