@@ -19,3 +19,7 @@ Stores data in memory using arrays. Implements project types, tasks, user roles,
    ```bash
    javac -d out src/tms/**/*.java
    java -cp out tms.app.Main
+   
+ ## Below is class diagram of TaskManagement
+   **[View Class Diagram](docs/ClassDiaram.pdf)**
+
