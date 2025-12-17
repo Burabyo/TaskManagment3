@@ -4,24 +4,21 @@ import java.util.UUID;
 
 public class Task {
 
-    private final String id;
+    private final String id;        // unique task identifier
     private String name;
     private Status status;
 
-    // ✅ REQUIRED BY ConsoleMenu
-    private String assignedUserId;
+    private String assignedUserId;  // tracks which user is assigned
+    private double hoursEstimate;   // optional estimated hours
 
-    // Optional but already referenced earlier
-    private double hoursEstimate;
-
-    /** Normal constructor */
+    /** Constructor for creating a new task */
     public Task(String name, Status status) {
-        this.id = "TSK" + UUID.randomUUID().toString().substring(0, 4);
+        this.id = "TSK" + UUID.randomUUID().toString().substring(0, 4); // short unique ID
         this.name = name;
         this.status = status;
     }
 
-    /** Used by FileUtils when loading from storage */
+    /** Constructor used when loading task from storage */
     public Task(String id, String name, Status status) {
         this.id = id;
         this.name = name;
@@ -38,20 +35,9 @@ public class Task {
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
 
-    /** ✅ FIX: method expected by ConsoleMenu */
-    public String getAssignedUserId() {
-        return assignedUserId;
-    }
+    public String getAssignedUserId() { return assignedUserId; }
+    public void setAssignedUserId(String assignedUserId) { this.assignedUserId = assignedUserId; }
 
-    public void setAssignedUserId(String assignedUserId) {
-        this.assignedUserId = assignedUserId;
-    }
-
-    public double getHoursEstimate() {
-        return hoursEstimate;
-    }
-
-    public void setHoursEstimate(double hoursEstimate) {
-        this.hoursEstimate = hoursEstimate;
-    }
+    public double getHoursEstimate() { return hoursEstimate; }
+    public void setHoursEstimate(double hoursEstimate) { this.hoursEstimate = hoursEstimate; }
 }

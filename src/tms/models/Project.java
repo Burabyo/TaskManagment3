@@ -16,8 +16,9 @@ public abstract class Project {
 
     protected List<Task> tasks = new ArrayList<>();
 
+    // Constructor with maxTasks
     public Project(String name, String description, int teamSize, double budget, int maxTasks) {
-        this.id = "P" + UUID.randomUUID().toString().substring(0, 4);
+        this.id = "P" + UUID.randomUUID().toString().substring(0, 4); // short unique ID
         this.name = name;
         this.description = description;
         this.teamSize = teamSize;
@@ -25,6 +26,7 @@ public abstract class Project {
         this.maxTasks = maxTasks;
     }
 
+    // Constructor with default maxTasks
     public Project(String name, String description, int teamSize, double budget) {
         this(name, description, teamSize, budget, 10);
     }
@@ -33,27 +35,30 @@ public abstract class Project {
 
     public void addTask(Task task) {
         if (tasks.size() >= maxTasks)
-            throw new IllegalStateException("Maximum tasks reached");
+            throw new IllegalStateException("Maximum tasks reached"); // enforce task limit
         tasks.add(task);
     }
 
     public List<Task> getTasks() { return tasks; }
 
-    /** ✅ FIX: method required by ReportService */
+    // Total tasks, used by reporting
     public int totalTasks() {
         return tasks.size();
     }
 
+    // Count of completed tasks
     public long completedTasks() {
         return tasks.stream()
                 .filter(t -> t.getStatus() == Status.COMPLETED)
                 .count();
     }
 
+    // Completion percentage of project tasks
     public double completionPercentage() {
         return tasks.isEmpty() ? 0 : (completedTasks() * 100.0) / tasks.size();
     }
 
+    // Summary string for console display
     public String summaryLine() {
         return id + " | " + name + " | " +
                 String.format("%.2f%%", completionPercentage());
@@ -79,6 +84,6 @@ public abstract class Project {
 
     /* ---------------- ABSTRACT ---------------- */
 
-    public abstract String getProjectDetails();
-    public abstract void displayProject();
+    public abstract String getProjectDetails(); // e.g., Hardware/Software
+    public abstract void displayProject();      // console output of project
 }
