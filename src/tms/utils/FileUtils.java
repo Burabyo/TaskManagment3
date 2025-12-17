@@ -6,12 +6,8 @@ import tms.service.ProjectService;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
-/**
- * Very small JSON-like persistence using NIO.
- * Format: one JSON object per project line (simple, not a full JSON parser).
- */
+
 public class FileUtils {
 
     private static final Path STORAGE = Paths.get("projects_data.txt");

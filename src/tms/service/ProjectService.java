@@ -13,10 +13,10 @@ public class ProjectService {
 
     private final Map<String, Project> projects = new LinkedHashMap<>();
 
-    /** ✅ Default constructor (used by app) */
+    /**  Default constructor (used by app) */
     public ProjectService() { }
 
-    /** ✅ Compatibility constructor (used by tests / older labs) */
+    /** Compatibility constructor */
     public ProjectService(int ignoredCapacity) {
         // capacity no longer needed, but constructor kept for tests
     }
