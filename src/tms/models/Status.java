@@ -1,25 +1,28 @@
 package tms.models;
 
-/**
- * Task Status enumeration with helper methods.
- */
 public enum Status {
+
     PENDING("Pending"),
     IN_PROGRESS("In Progress"),
     COMPLETED("Completed");
 
     private final String label;
 
-    Status(String label) { this.label = label; }
+    Status(String label) {
+        this.label = label;
+    }
 
-    public String label() { return label; }
+    /** Used by UI / reports */
+    public String label() {
+        return label;
+    }
 
+    /** Used when loading from file or parsing input */
     public static Status fromString(String s) {
         if (s == null) return PENDING;
-        String n = s.trim().toLowerCase();
-        return switch (n) {
-            case "completed", "complete" -> COMPLETED;
-            case "in progress", "in_progress", "inprogress" -> IN_PROGRESS;
+        return switch (s.toLowerCase()) {
+            case "completed" -> COMPLETED;
+            case "in progress", "in_progress" -> IN_PROGRESS;
             default -> PENDING;
         };
     }
