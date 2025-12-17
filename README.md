@@ -1,17 +1,4 @@
-Got you 👍
-I’ll give you a **clean, human-sounding, detailed README** that:
-
-* Explains **what the system does**, not “Lab 1 / Lab 2 / Lab 3”
-* Describes **features progressively**, like a real project
-* Mentions **new capabilities** (collections, streams, persistence, concurrency, testing)
-* Has **no icons, no AI tone, no course-style wording**
-* Fits an **interview + GitHub submission**
-
-You can paste this directly as `README.md`.
-
----
-
-# Project / Task Management System (Java)
+# Task Management System (Java)
 
 ## Overview
 
