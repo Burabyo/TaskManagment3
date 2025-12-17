@@ -1,115 +1,84 @@
 package tms.models;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-/**
- * Abstract Project class
-
- * Fields required: id, name, description, budget, teamSize.
- * Stores tasks in an array (no collections) as the lab requires.
-
- * Subclasses must implement getProjectDetails() to include type-specific info.
- */
 public abstract class Project {
-    private static int counter = 1;
 
-    private final String id;
-    private String name;
-    private String description;
-    private double budget;
-    private int teamSize;
+    protected String id;
+    protected String name;
+    protected String description;
+    protected int teamSize;
+    protected double budget;
+    protected int maxTasks;
 
-    // Each project stores tasks in an array (fixed maximum per project)
-    private final Task[] tasks;
-    private int taskCount;
+    protected List<Task> tasks = new ArrayList<>();
 
-    protected Project(String name, String description, int teamSize, double budget, int maxTasks) {
-        this.id = String.format("PRJ%03d", counter++);
+    public Project(String name, String description, int teamSize, double budget, int maxTasks) {
+        this.id = "P" + UUID.randomUUID().toString().substring(0, 4);
         this.name = name;
         this.description = description;
         this.teamSize = teamSize;
         this.budget = budget;
-        this.tasks = new Task[maxTasks];
-        this.taskCount = 0;
+        this.maxTasks = maxTasks;
     }
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public double getBudget() { return budget; }
-    public void setBudget(double budget) { this.budget = budget; }
-
-    public int getTeamSize() { return teamSize; }
-    public void setTeamSize(int teamSize) { this.teamSize = teamSize; }
-
-    // Abstract method: subclass-specific details
-    public abstract String getProjectDetails();
-
-    // Display method (concrete)
-    public void displayProject() {
-        System.out.printf("Project ID: %s%n", id);
-        System.out.printf("Name      : %s%n", name);
-        System.out.printf("Type      : %s%n", getProjectDetails());
-        System.out.printf("Team Size : %d%n", teamSize);
-        System.out.printf("Budget    : $%,.2f%n", budget);
-        System.out.println("Description: " + description);
+    public Project(String name, String description, int teamSize, double budget) {
+        this(name, description, teamSize, budget, 10);
     }
 
-    // Task array operations (array-only)
-    public boolean addTask(Task t) {
-        if (taskCount >= tasks.length) return false;
-        // Prevent duplicate task names
-        for (int i = 0; i < taskCount; i++) {
-            if (tasks[i].getName().equalsIgnoreCase(t.getName())) return false;
-        }
-        tasks[taskCount++] = t;
-        return true;
+    /* ---------------- TASK METHODS ---------------- */
+
+    public void addTask(Task task) {
+        if (tasks.size() >= maxTasks)
+            throw new IllegalStateException("Maximum tasks reached");
+        tasks.add(task);
     }
 
-    public Task findTaskById(String taskId) {
-        for (int i = 0; i < taskCount; i++) {
-            if (tasks[i].getId().equalsIgnoreCase(taskId)) return tasks[i];
-        }
-        return null;
+    public List<Task> getTasks() { return tasks; }
+
+    /** ✅ FIX: method required by ReportService */
+    public int totalTasks() {
+        return tasks.size();
     }
 
-    public boolean removeTaskById(String taskId) {
-        for (int i = 0; i < taskCount; i++) {
-            if (tasks[i].getId().equalsIgnoreCase(taskId)) {
-                // shift left
-                for (int j = i; j < taskCount - 1; j++) tasks[j] = tasks[j + 1];
-                tasks[--taskCount] = null;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public Task[] getTasks() {
-        return Arrays.copyOf(tasks, taskCount);
-    }
-
-    public int totalTasks() { return taskCount; }
-
-    public int completedTasks() {
-        int c = 0;
-        for (int i = 0; i < taskCount; i++) if (tasks[i].isCompleted()) c++;
-        return c;
+    public long completedTasks() {
+        return tasks.stream()
+                .filter(t -> t.getStatus() == Status.COMPLETED)
+                .count();
     }
 
     public double completionPercentage() {
-        if (taskCount == 0) return 0.0;
-        double perc = (completedTasks() * 100.0) / taskCount;
-        return Math.round(perc * 100.0) / 100.0; // round to 2 decimals
+        return tasks.isEmpty() ? 0 : (completedTasks() * 100.0) / tasks.size();
     }
 
-    // Short summary for lists
     public String summaryLine() {
-        return String.format("%s | %-18s | Type:%-8s | Team:%2d | $%,8.2f | Tasks:%2d | %5.2f%%",
-                id, name, getProjectDetails(), teamSize, budget, totalTasks(), completionPercentage());
+        return id + " | " + name + " | " +
+                String.format("%.2f%%", completionPercentage());
     }
+
+    /* ---------------- FILE SAVE HELPER ---------------- */
+
+    public String tasksToSaveString() {
+        return tasks.stream()
+                .map(t -> String.format(
+                        "{\"id\":\"%s\",\"name\":\"%s\",\"status\":\"%s\"}",
+                        t.getId(), t.getName(), t.getStatus()))
+                .collect(Collectors.joining(","));
+    }
+
+    /* ---------------- GETTERS ---------------- */
+
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public double getBudget() { return budget; }
+    public int getTeamSize() { return teamSize; }
+
+    /* ---------------- ABSTRACT ---------------- */
+
+    public abstract String getProjectDetails();
+    public abstract void displayProject();
 }

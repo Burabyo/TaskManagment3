@@ -1,44 +1,55 @@
 package tms.service;
 
 import tms.models.Project;
-import tms.models.Task;
 import tms.models.Status;
-import tms.utils.exceptions.ProjectNotFoundException;
+import tms.models.Task;
 import tms.utils.exceptions.TaskNotFoundException;
 
-/**
- * TaskService delegates task operations to the Project objects.
- * Now throws TaskNotFoundException when a task is missing.
- */
 public class TaskService {
-
     private final ProjectService projectService;
 
-    public TaskService(ProjectService projectService) {
-        this.projectService = projectService;
+    public TaskService(ProjectService ps) {
+        this.projectService = ps;
     }
 
-    public boolean addTaskToProject(String projectId, Task t) {
-        Project p = projectService.findById(projectId); // will throw ProjectNotFoundException if missing
-        return p.addTask(t); // Project handles duplicates/capacity and returns boolean
-    }
-
-    public boolean updateTaskStatus(String projectId, String taskId, Status newStatus) {
+    /**
+     * Adds a new task to a project.
+     */
+    public void addTaskToProject(String projectId, Task task) {
         Project p = projectService.findById(projectId);
-        Task t = p.findTaskById(taskId);
-        if (t == null) {
-            throw new TaskNotFoundException("Task with ID " + taskId + " not found in project " + projectId + ".");
-        }
-        t.setStatus(newStatus);
-        return true;
+        p.addTask(task);
     }
 
-    public boolean removeTask(String projectId, String taskId) {
+    /**
+     * Updates the status of a task in a project.
+     */
+    public boolean updateTaskStatus(String projectId, String taskId, Status status) {
         Project p = projectService.findById(projectId);
-        boolean removed = p.removeTaskById(taskId);
-        if (!removed) {
-            throw new TaskNotFoundException("Task with ID " + taskId + " not found in project " + projectId + ".");
+        for (Task t : p.getTasks()) {
+            if (t.getId().equals(taskId)) {
+                t.setStatus(status);
+                return true;
+            }
         }
-        return true;
+        throw new TaskNotFoundException("Task not found: " + taskId);
+    }
+
+    /**
+     * Removes a task from a project.
+     */
+    public void removeTask(String projectId, String taskId) {
+        Project p = projectService.findById(projectId);
+        Task toRemove = null;
+        for (Task t : p.getTasks()) {
+            if (t.getId().equals(taskId)) {
+                toRemove = t;
+                break;
+            }
+        }
+        if (toRemove != null) {
+            p.getTasks().remove(toRemove);
+        } else {
+            throw new TaskNotFoundException("Task not found: " + taskId);
+        }
     }
 }
