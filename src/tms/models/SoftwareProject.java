@@ -2,19 +2,22 @@ package tms.models;
 
 public class SoftwareProject extends Project {
 
-    // Constructor with maxTasks
     public SoftwareProject(String name, String description, int teamSize, double budget, int maxTasks) {
         super(name, description, teamSize, budget, maxTasks);
     }
 
-    // Constructor with default maxTasks
     public SoftwareProject(String name, String description, int teamSize, double budget) {
         super(name, description, teamSize, budget);
     }
 
+    public SoftwareProject(String id, String name, String description,
+                           int teamSize, double budget) {
+        super(id, name, description, teamSize, budget, 10);
+    }
+
     @Override
     public String getProjectDetails() {
-        return "Software"; // identifies project type
+        return "Software";
     }
 
     @Override

@@ -18,7 +18,7 @@ public abstract class Project {
 
     // Constructor with maxTasks
     public Project(String name, String description, int teamSize, double budget, int maxTasks) {
-        this.id = "P" + UUID.randomUUID().toString().substring(0, 4); // short unique ID
+        this.id = "P" + UUID.randomUUID().toString().substring(0, 4);
         this.name = name;
         this.description = description;
         this.teamSize = teamSize;
@@ -31,40 +31,42 @@ public abstract class Project {
         this(name, description, teamSize, budget, 10);
     }
 
-    /* ---------------- TASK METHODS ---------------- */
+    protected Project(String id, String name, String description,
+                      int teamSize, double budget, int maxTasks) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.teamSize = teamSize;
+        this.budget = budget;
+        this.maxTasks = maxTasks;
+    }
 
     public void addTask(Task task) {
         if (tasks.size() >= maxTasks)
-            throw new IllegalStateException("Maximum tasks reached"); // enforce task limit
+            throw new IllegalStateException("Maximum tasks reached");
         tasks.add(task);
     }
 
     public List<Task> getTasks() { return tasks; }
 
-    // Total tasks, used by reporting
     public int totalTasks() {
         return tasks.size();
     }
 
-    // Count of completed tasks
     public long completedTasks() {
         return tasks.stream()
                 .filter(t -> t.getStatus() == Status.COMPLETED)
                 .count();
     }
 
-    // Completion percentage of project tasks
     public double completionPercentage() {
         return tasks.isEmpty() ? 0 : (completedTasks() * 100.0) / tasks.size();
     }
 
-    // Summary string for console display
     public String summaryLine() {
         return id + " | " + name + " | " +
                 String.format("%.2f%%", completionPercentage());
     }
-
-    /* ---------------- FILE SAVE HELPER ---------------- */
 
     public String tasksToSaveString() {
         return tasks.stream()
@@ -74,16 +76,12 @@ public abstract class Project {
                 .collect(Collectors.joining(","));
     }
 
-    /* ---------------- GETTERS ---------------- */
-
     public String getId() { return id; }
     public String getName() { return name; }
     public String getDescription() { return description; }
     public double getBudget() { return budget; }
     public int getTeamSize() { return teamSize; }
 
-    /* ---------------- ABSTRACT ---------------- */
-
-    public abstract String getProjectDetails(); // e.g., Hardware/Software
-    public abstract void displayProject();      // console output of project
+    public abstract String getProjectDetails();
+    public abstract void displayProject();
 }

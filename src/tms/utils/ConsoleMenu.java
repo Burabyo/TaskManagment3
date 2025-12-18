@@ -2,16 +2,11 @@ package tms.utils;
 
 import tms.models.*;
 import tms.service.*;
-import tms.utils.FileUtils;
-import tms.utils.ValidationUtils;
 import tms.utils.exceptions.*;
 
 import java.io.IOException;
 import java.util.Scanner;
 
-/**
- * Console-based menu for project management operations.
- */
 public class ConsoleMenu {
     private final Scanner scanner = new Scanner(System.in);
     private final ProjectService projectService;
@@ -20,7 +15,11 @@ public class ConsoleMenu {
     private final ConcurrencyService concurrencyService;
     private User currentUser;
 
-    public ConsoleMenu(ProjectService projectService, TaskService taskService, ReportService reportService, ConcurrencyService concurrencyService, User initialUser) {
+    public ConsoleMenu(ProjectService projectService,
+                       TaskService taskService,
+                       ReportService reportService,
+                       ConcurrencyService concurrencyService,
+                       User initialUser) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.reportService = reportService;
@@ -29,14 +28,15 @@ public class ConsoleMenu {
     }
 
     public void run() {
-        // Load saved projects
         var loaded = FileUtils.loadAll();
         if (!loaded.isEmpty()) projectService.replaceAll(loaded);
 
         boolean running = true;
         while (running) {
             printHeader();
-            System.out.printf("Current User: %s (%s)%n%n", currentUser.getName(), currentUser.getRole());
+            System.out.printf("Current User: %s (%s)%n%n",
+                    currentUser.getName(), currentUser.getRole());
+
             System.out.println("Main Menu:");
             System.out.println("1. Manage Projects");
             System.out.println("2. Manage Tasks");
@@ -44,25 +44,23 @@ public class ConsoleMenu {
             System.out.println("4. Simulate Concurrent Updates");
             System.out.println("5. Switch User");
             System.out.println("6. Save & Exit");
-            int choice = ValidationUtils.readInt(scanner, "Enter your choice: ", 1, 6);
+
+            int choice = ValidationUtils.readInt(scanner,
+                    "Enter your choice: ", 1, 6);
+
             try {
                 switch (choice) {
                     case 1 -> manageProjectsMenu();
-                    case 2 -> manageProjectsMenu();
+                    case 2 -> manageTasksMenu();
                     case 3 -> reportService.printProjectStatusReport();
                     case 4 -> concurrencyMenu();
                     case 5 -> switchUser();
-                    case 6 -> { // Save and exit
-                        try {
-                            FileUtils.saveAll(projectService);
-                            System.out.println("Saved. Exiting.");
-                        } catch (IOException e) {
-                            System.out.println("Failed to save data: " + e.getMessage());
-                        }
+                    case 6 -> {
+                        FileUtils.saveAll(projectService);
                         running = false;
                     }
                 }
-            } catch (RuntimeException ex) {
+            } catch (RuntimeException | IOException ex) {
                 System.out.println("Error: " + ex.getMessage());
             }
         }
@@ -74,7 +72,6 @@ public class ConsoleMenu {
         System.out.println("============================\n");
     }
 
-    // Project management menu
     private void manageProjectsMenu() {
         boolean back = false;
         while (!back) {
@@ -83,7 +80,10 @@ public class ConsoleMenu {
             System.out.println("2. View / Filter Projects");
             System.out.println("3. View Project Details");
             System.out.println("4. Back to Main Menu");
-            int ch = ValidationUtils.readInt(scanner, "Enter choice: ", 1, 4);
+
+            int ch = ValidationUtils.readInt(scanner,
+                    "Enter choice: ", 1, 4);
+
             switch (ch) {
                 case 1 -> createProjectFlow();
                 case 2 -> filterProjectsFlow();
@@ -93,8 +93,65 @@ public class ConsoleMenu {
         }
     }
 
+    private void manageTasksMenu() {
+        boolean back = false;
+        while (!back) {
+            System.out.println("\nTASK MANAGEMENT");
+            System.out.println("1. Add Task");
+            System.out.println("2. Update Task Status");
+            System.out.println("3. Remove Task");
+            System.out.println("4. Back to Main Menu");
+
+            int ch = ValidationUtils.readInt(scanner,
+                    "Enter choice: ", 1, 4);
+
+            switch (ch) {
+                case 1 -> addTaskFlow();
+                case 2 -> updateTaskStatusFlow();
+                case 3 -> removeTaskFlow();
+                case 4 -> back = true;
+            }
+        }
+    }
+
+    private void addTaskFlow() {
+        String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID: ");
+        String name = ValidationUtils.readNonEmpty(scanner, "Enter task name: ");
+        Task t = new Task(name, Status.PENDING);
+        taskService.addTaskToProject(pid, t);
+        System.out.println("Task added with ID: " + t.getId());
+    }
+
+    private void updateTaskStatusFlow() {
+        String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID: ");
+        String tid = ValidationUtils.readNonEmpty(scanner, "Enter task ID: ");
+
+        System.out.println("1. PENDING");
+        System.out.println("2. IN_PROGRESS");
+        System.out.println("3. COMPLETED");
+
+        int s = ValidationUtils.readInt(scanner, "Select status: ", 1, 3);
+        Status status = Status.values()[s - 1];
+
+        taskService.updateTaskStatus(pid, tid, status);
+        System.out.println("Task updated.");
+    }
+
+    private void removeTaskFlow() {
+        String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID: ");
+        String tid = ValidationUtils.readNonEmpty(scanner, "Enter task ID: ");
+        taskService.removeTask(pid, tid);
+        System.out.println("Task removed.");
+    }
+
     private void createProjectFlow() {
-        int type = ValidationUtils.readInt(scanner, "Select type: ", 1, 2);
+        System.out.println("\nCreate Project");
+        System.out.println("1. Software Project");
+        System.out.println("2. Hardware Project");
+
+        int type = ValidationUtils.readInt(scanner,
+                "Select project type: ", 1, 2);
+
         String name = ValidationUtils.readNonEmpty(scanner, "Enter project name: ");
         String desc = ValidationUtils.readNonEmpty(scanner, "Enter description: ");
         int teamSize = ValidationUtils.readInt(scanner, "Enter team size: ", 1, 1000);
@@ -103,28 +160,27 @@ public class ConsoleMenu {
         Project p = (type == 1)
                 ? new SoftwareProject(name, desc, teamSize, budget)
                 : new HardwareProject(name, desc, teamSize, budget);
+
         projectService.addProject(p);
-        System.out.printf("Project created with ID %s.%n", p.getId());
+        System.out.println("Project created.");
     }
 
     private void filterProjectsFlow() {
-        int choice = ValidationUtils.readInt(scanner, "Enter filter choice: ", 1, 4);
-        switch (choice) {
+        System.out.println("\nFilter Projects");
+        System.out.println("1. View All");
+        System.out.println("2. Software Only");
+        System.out.println("3. Hardware Only");
+
+        int c = ValidationUtils.readInt(scanner, "Choice: ", 1, 3);
+
+        switch (c) {
             case 1 -> displayProjects(projectService.getAllProjects());
             case 2 -> displayProjects(projectService.filterByType("Software"));
             case 3 -> displayProjects(projectService.filterByType("Hardware"));
-            case 4 -> {
-                double min = ValidationUtils.readDouble(scanner, "Enter min budget: ", 0, Double.MAX_VALUE);
-                double max = ValidationUtils.readDouble(scanner, "Enter max budget: ", 0, Double.MAX_VALUE);
-                displayProjects(projectService.searchByBudgetRange(min, max));
-            }
         }
     }
 
     private void displayProjects(Iterable<Project> projects) {
-        var it = projects.iterator();
-        if (!it.hasNext()) { System.out.println("No projects found."); return; }
-        System.out.println("\nPROJECT LIST:");
         for (Project p : projects) {
             System.out.println(p.summaryLine());
         }
@@ -134,30 +190,24 @@ public class ConsoleMenu {
         String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID: ");
         Project p = projectService.findById(pid);
         p.displayProject();
-        System.out.println("\nAssociated Tasks:");
-        var tasks = p.getTasks();
-        if (tasks.isEmpty()) System.out.println("No tasks yet.");
-        else {
-            System.out.printf("%-8s %-25s %-12s %-10s %-6s%n", "TASKID", "NAME", "STATUS", "ASSIGNED", "HOURS");
-            for (Task t : tasks) {
-                System.out.printf("%-8s %-25s %-12s %-10s %-6.1f%n",
-                        t.getId(), t.getName(), t.getStatus().label(), t.getAssignedUserId()==null?"-":t.getAssignedUserId(), t.getHoursEstimate());
-            }
-        }
         System.out.printf("Completion Rate: %.2f%%%n", p.completionPercentage());
     }
 
-    // Switch user type (Admin/Regular)
     private void switchUser() {
-        int choice = ValidationUtils.readInt(scanner, "Choose user type: ", 1, 2);
-        String name = ValidationUtils.readNonEmpty(scanner, "Enter name: ");
-        String email = ValidationUtils.readNonEmpty(scanner, "Enter email: ");
-        currentUser = (choice == 1) ? new AdminUser(name, email) : new RegularUser(name, email);
-        System.out.printf("Switched to %s (%s).%n", currentUser.getName(), currentUser.getRole());
+        System.out.println("1. Admin");
+        System.out.println("2. Regular");
+
+        int c = ValidationUtils.readInt(scanner, "Choice: ", 1, 2);
+        String name = ValidationUtils.readNonEmpty(scanner, "Name: ");
+        String email = ValidationUtils.readNonEmpty(scanner, "Email: ");
+
+        currentUser = (c == 1)
+                ? new AdminUser(name, email)
+                : new RegularUser(name, email);
     }
 
     private void concurrencyMenu() {
-        String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID for simulation: ");
-        concurrencyService.simulateConcurrentUpdates(pid); // simulate multi-threaded updates
+        String pid = ValidationUtils.readNonEmpty(scanner, "Enter project ID: ");
+        concurrencyService.simulateConcurrentUpdates(pid);
     }
 }
